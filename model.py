@@ -31,7 +31,7 @@ class PositionalEncoding(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
     
         ##initialize the positional encoding with zeros
-        self.positional_encoding = torch.zeros(self.seq_len, self.d_model, device=device)
+        self.positional_encoding = torch.zeros(self.seq_len, self.d_model)
      
         ##first path of the equation is postion/scaling factor per dimesnsion
         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
@@ -50,6 +50,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', self.positional_encoding)
     
     def forward(self, x):
+         print("Using deviccccce:", device)
          x =  x + (self.positional_encoding.unsqueeze(0)).requires_grad_(False)
          return self.dropout(x)
 
