@@ -28,6 +28,7 @@ class PositionalEncoding(nn.Module):
         self.seq_len = seq_len
         self.d_model = d_model
         self.batch = batch
+        self.dropout = nn.Dropout(p=0.1)
     
         ##initialize the positional encoding with zeros
         self.positional_encoding = torch.zeros(self.seq_len, self.d_model)
@@ -46,9 +47,11 @@ class PositionalEncoding(nn.Module):
 
         ## this calculates the cos values for odd indices
         self.positional_encoding[:, 1::2] = torch.cos(postion * div_term)
+        self.register_buffer('pe', self.positional_encoding)
     
     def forward(self, x):
-        return x + self.positional_encoding.unsqueeze(0)
+         x =  x + (self.positional_encoding.unsqueeze(0)).requires_grad_(False)
+         return self.dropout(x)
 
 
 
