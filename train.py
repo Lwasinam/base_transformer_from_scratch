@@ -154,7 +154,8 @@ def train_model():
     Path(config['model_folder']).mkdir(parents=True, exist_ok=True)
 
     train_dataloader, val_dataloader = get_dataset()
-    model = get_model().to(device)
+    model = get_model()
+    model = model.to(device)
 
 
 
