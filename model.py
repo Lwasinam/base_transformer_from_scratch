@@ -47,7 +47,7 @@ class PositionalEncoding(nn.Module):
 
         ## this calculates the cos values for odd indices
         self.positional_encoding[:, 1::2] = torch.cos(postion * div_term)
-        self.register_buffer('pe', self.positional_encoding)
+        self.register_buffer('pe', self.positional_encoding.to('cuda'))
     
     def forward(self, x):
          print("Using deviccccce:", device)
