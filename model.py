@@ -4,7 +4,7 @@ import math
 
 
 
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class InputEmbedding(nn.Module):
     def __init__(self, d_model, vocab_size) -> None:
         super().__init__()
@@ -31,7 +31,7 @@ class PositionalEncoding(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
     
         ##initialize the positional encoding with zeros
-        self.positional_encoding = torch.zeros(self.seq_len, self.d_model)
+        self.positional_encoding = torch.zeros(self.seq_len, self.d_model, device=device)
      
         ##first path of the equation is postion/scaling factor per dimesnsion
         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
