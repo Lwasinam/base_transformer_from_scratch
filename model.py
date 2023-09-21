@@ -30,7 +30,7 @@ class PositionalEncoding(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
     
         ##initialize the positional encoding with zeros
-        self.positional_encoding = torch.zeros(self.seq_len, self.d_model)
+        positional_encoding = torch.zeros(self.seq_len, self.d_model)
      
         ##first path of the equation is postion/scaling factor per dimesnsion
         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
@@ -42,14 +42,14 @@ class PositionalEncoding(nn.Module):
       
 
         ## this calculates the sin values for even indices
-        self.positional_encoding[:, 0::2] = torch.sin(postion * div_term) 
+        positional_encoding[:, 0::2] = torch.sin(postion * div_term) 
 
       
         ## this calculates the cos values for odd indices
-        self.positional_encoding[:, 1::2] = torch.cos(postion * div_term)
+        positional_encoding[:, 1::2] = torch.cos(postion * div_term)
 
-        self.positional_encoding = self.positional_encoding.unsqueeze(0)
-        self.register_buffer('pe', self.positional_encoding)
+        positional_encoding = positional_encoding.unsqueeze(0)
+        self.register_buffer('positional_encoding', positional_encoding)
     
     def forward(self, x):
          print(x.shape)

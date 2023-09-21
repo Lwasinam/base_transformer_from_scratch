@@ -2,7 +2,7 @@ from pathlib import Path
 
 def get_config():
     return {
-        'batch_size': 15,
+        'batch_size': 20,
         'd_model': 512,
         'seq_len': 512,
         "num_epochs": 20,
@@ -13,7 +13,7 @@ def get_config():
         "lang_tgt": "it",
         "model_folder": "weights",
         "model_basename": "tmodel_",
-        "preload": '00',
+        "preload": None,
         
     }
 
