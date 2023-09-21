@@ -190,9 +190,7 @@ def train_model():
 
             encoder_output =   model.encode(encoder_input, encoder_mask)
             decoder_output = model.decode(decoder_input, encoder_mask,decoder_mask, encoder_output, )
-            proj_output = model.project(decoder_output)
-            print(target_lang_tokenizer.get_vocab_size())
-            print(proj_output.shape)
+            proj_output = model.project(decoder_output)        
 
 
              # Compare the output with the label
