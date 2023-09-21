@@ -3,6 +3,8 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
 from datasets import load_dataset
+from tokenizers.models import WordLevel
+from tokenizers.trainers import WordLevelTrainer
 from dataset import BilingualDataset, causal_mask
 from torch.utils.data import Dataset, DataLoader, random_split
 from config import get_config, get_weights_file_path
@@ -101,14 +103,12 @@ def get_story_in_lang(ds, lang):
 
 
 def get_or_build_tokenizer(ds, lang):
-    tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
-    from tokenizers.trainers import BpeTrainer
-    trainer = BpeTrainer(special_tokens=["[UNK]", "[SOS]", "[EOS]", "[PAD]"])
-
+   
+    tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
     tokenizer.pre_tokenizer = Whitespace()
-
+    trainer = WordLevelTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
     tokenizer.train_from_iterator(get_story_in_lang(ds, lang), trainer = trainer)
-    tokenizer.save(f"tokenizer-{lang}.json")
+    tokenizer.save(f"tokenizer_{lang}.json")
     return tokenizer
 
 
@@ -191,6 +191,8 @@ def train_model():
             encoder_output =   model.encode(encoder_input, encoder_mask)
             decoder_output = model.decode(decoder_input, encoder_mask,decoder_mask, encoder_output, )
             proj_output = model.project(decoder_output)
+            print(target_lang_tokenizer.get_vocab_size())
+            print(proj_output.shape)
 
 
              # Compare the output with the label
@@ -217,7 +219,7 @@ def train_model():
                 'optimizer_state_dict': optimizer.state_dict(),
                 'global_step': global_step
             }, model_filename)
-        run_validation(model, val_dataloader, source_lang_tokenizer, target_lang_tokenizer, config['seq_len'], device, lambda msg: batch_iterator.write(msg), global_step,)    
+        run_validation(model, val_dataloader, source_lang_tokenizer, target_lang_tokenizer, config['seq_len'], device, lambda msg: batch_iterator.write(msg))    
 
 
 
