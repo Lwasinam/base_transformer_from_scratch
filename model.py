@@ -14,7 +14,6 @@ class InputEmbedding(nn.Module):
 
 
     def forward(self, x):
-        print(x.shape) 
         # (batch, seq_len) --> (batch, seq_len, d_model)
         # Multiply by sqrt(d_model) to scale the embeddings according to the paper
         
@@ -275,7 +274,7 @@ class DecoderBlock(nn.Module):
         ##cross attention
         x = MultiHeadAttention.self_attention(self,x, encoder_output, encoder_output, tgt_mask, self.dropout1)
 
-        print(x.shape)
+       
         x = self.layer_norm2(x + x_resid2)
         x_resid3 = x
         x = self.feedforward(x)
@@ -333,8 +332,6 @@ class Transformer(nn.Module):
     #     return x
     def encode(self,x, src_mask):
         x = self.source_embedding(x)
-        print('here')
-        print(x.shape)
         x = self.encoder(x, src_mask)
         return x
     def decode(self,x, src_mask, tgt_mask, encoder_output,):

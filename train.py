@@ -115,6 +115,8 @@ source_lang_tokenizer = get_or_build_tokenizer(ds_raw, 'en')
 target_lang_tokenizer = get_or_build_tokenizer(ds_raw, 'it')
 
 def get_dataset():
+    seed = 42  # You can choose any integer as your seed
+    torch.manual_seed(seed)
       # Keep 90% for training, 10% for validation
     train_ds_size = int(0.9 * len(ds_raw))
     val_ds_size = len(ds_raw) - train_ds_size
@@ -131,6 +133,7 @@ def get_dataset():
 
     print(f'Max length of source sentence: {max_len_src}')
     print(f'Max length of target sentence: {max_len_tgt}')
+    print(train_ds_raw)
 
     train_ds = BilingualDataset(train_ds_raw, source_lang_tokenizer, target_lang_tokenizer, 'en', 'it', config['seq_len'])
     val_ds = BilingualDataset(val_ds_raw, source_lang_tokenizer, target_lang_tokenizer, 'en', 'it', config['seq_len'])
@@ -146,7 +149,7 @@ def get_model():
 
 
 def train_model():
-        # Define the device
+    # Define the device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device)
 
