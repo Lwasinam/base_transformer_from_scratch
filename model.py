@@ -52,7 +52,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
          print(self.positional_encoding.get_device())
          print("Using deviccccce:", device)
-         x =  x + (self.positional_encoding.unsqueeze(0)).requires_grad_(False)
+         x =  x + (self.positional_encoding.unsqueeze(0)).requires_grad_(False).to('cuda')
          return self.dropout(x)
 
 
