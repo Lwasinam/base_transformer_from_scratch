@@ -50,7 +50,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', self.positional_encoding.to('cuda'))
     
     def forward(self, x):
-         print(x.get_device())
+         print(self.positional_encoding.get_device())
          print("Using deviccccce:", device)
          x =  x + (self.positional_encoding.unsqueeze(0)).requires_grad_(False)
          return self.dropout(x)
