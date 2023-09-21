@@ -54,7 +54,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
      
          
-         x =  x + (self.positional_encoding).requires_grad_(False).to('cpu')
+         x =  x + (self.positional_encoding).requires_grad_(False).to('cuda')
          return self.dropout(x)
 
 
