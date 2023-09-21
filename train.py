@@ -133,7 +133,7 @@ def get_dataset():
 
     print(f'Max length of source sentence: {max_len_src}')
     print(f'Max length of target sentence: {max_len_tgt}')
-    print(train_ds_raw)
+    print(train_ds_raw[:1])
 
     train_ds = BilingualDataset(train_ds_raw, source_lang_tokenizer, target_lang_tokenizer, 'en', 'it', config['seq_len'])
     val_ds = BilingualDataset(val_ds_raw, source_lang_tokenizer, target_lang_tokenizer, 'en', 'it', config['seq_len'])
