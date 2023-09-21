@@ -38,20 +38,23 @@ class PositionalEncoding(nn.Module):
         ## this calculates the scaling term per dimension (512)
         # div_term = torch.exp(torch.arange(0, self.d_model, 2) * -(math.log(10000.0) / d_model))
 
-        div_term = torch.pow(10,  torch.arange(0,self.d_model, 2)*-4/self.d_model)
+        div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
       
 
         ## this calculates the sin values for even indices
         self.positional_encoding[:, 0::2] = torch.sin(postion * div_term) 
 
+      
         ## this calculates the cos values for odd indices
         self.positional_encoding[:, 1::2] = torch.cos(postion * div_term)
-        self.register_buffer('pe', self.positional_encoding.to('cuda'))
+
+        self.positional_encoding = self.positional_encoding.unsqueeze(0)
+        self.register_buffer('pe', self.positional_encoding)
     
     def forward(self, x):
      
          
-         x =  x + (self.positional_encoding.unsqueeze(0)).requires_grad_(False).to('cuda')
+         x =  x + (self.positional_encoding).requires_grad_(False).to('cuda')
          return self.dropout(x)
 
 

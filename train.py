@@ -20,6 +20,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
     sos_idx = tokenizer_tgt.token_to_id('[SOS]')
     eos_idx = tokenizer_tgt.token_to_id('[EOS]')
 
+
     # Precompute the encoder output and reuse it for every step
     encoder_output = model.encode(source, source_mask)
     # Initialize the decoder input with the sos token
@@ -32,7 +33,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
         decoder_mask = causal_mask(decoder_input.size(1)).type_as(source_mask).to(device)
 
         # calculate output
-        out = model.decode(encoder_output, source_mask, decoder_input, decoder_mask)
+        out = model.decode(decoder_input, source_mask, decoder_mask, encoder_output)
 
         # get next token
         prob = model.project(out[:, -1])
