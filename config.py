@@ -13,7 +13,7 @@ def get_config():
         "lang_tgt": "it",
         "model_folder": "weights",
         "model_basename": "tmodel_",
-        "preload": None,
+        "preload": '00',
         
     }
 

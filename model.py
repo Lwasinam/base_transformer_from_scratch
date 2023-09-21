@@ -52,7 +52,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', self.positional_encoding)
     
     def forward(self, x):
-     
+         print(x.shape)
          
          x =  x + (self.positional_encoding).requires_grad_(False).to('cuda')
          return self.dropout(x)
