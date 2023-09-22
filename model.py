@@ -51,10 +51,8 @@ class PositionalEncoding(nn.Module):
         positional_encoding = positional_encoding.unsqueeze(0)
         self.register_buffer('positional_encoding', positional_encoding)
     
-    def forward(self, x):
-         print(x.shape)
-         
-         x =  x + (self.positional_encoding).requires_grad_(False).to('cuda')
+    def forward(self, x):  
+         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to('cuda')
          return self.dropout(x)
 
 
@@ -118,15 +116,15 @@ class MultiHeadAttention(nn.Module):
       
 
         #this gives us a dimension of batch, num_heads, seq_len by 64. basically 1 sentence is converted to have 8 parts (heads)
-    def forward(self,x, mask):
+    def forward(self,query, key, value, mask):
         self.mask  = mask
       
 
 
         ## initialize the query, key and value matrices to give us seq_len by 512
-        self.query = self.query_weight(x)
-        self.key = self.key_weight(x)
-        self.value = self.value_weight(x)
+        self.query = self.query_weight(query)
+        self.key = self.key_weight(key)
+        self.value = self.value_weight(value)
 
 
         
@@ -215,7 +213,7 @@ class EncoderBlock(nn.Module):
 
         ##storing residual value
         x_resid = x
-        x = self.multiheadattention(x, src_mask)
+        x = self.multiheadattention(x,x,x, src_mask)
         x = self.layer_norm1(x + x_resid)
 
         ## storing the 2nd residual value
@@ -269,13 +267,13 @@ class DecoderBlock(nn.Module):
         x = self.positional_encoding(x)
         x = self.dropout1(x)
         x_resid = x
-        x = self.multiheadattention(x, src_mask)
+        x = self.multiheadattention(x,x,x, tgt_mask)
         x = self.layer_norm1(x + x_resid)
         x_resid2 = x
 
 
         ##cross attention
-        x = MultiHeadAttention.self_attention(self,x, encoder_output, encoder_output, tgt_mask, self.dropout1)
+        x = self.multiheadattention(x, encoder_output, encoder_output, src_mask,)
 
        
         x = self.layer_norm2(x + x_resid2)

@@ -34,6 +34,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
         # build mask for target
         decoder_mask = causal_mask(decoder_input.size(1)).type_as(source_mask).to(device)
 
+
         # calculate output
         out = model.decode(decoder_input, source_mask, decoder_mask, encoder_output)
 
