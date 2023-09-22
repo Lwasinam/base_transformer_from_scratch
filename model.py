@@ -36,9 +36,9 @@ class PositionalEncoding(nn.Module):
         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
     
         ## this calculates the scaling term per dimension (512)
-        # div_term = torch.exp(torch.arange(0, self.d_model, 2) * -(math.log(10000.0) / d_model))
+        div_term = torch.exp(torch.arange(0, self.d_model, 2) * -(math.log(10000.0) / self.d_model))
 
-        div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
+        # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
       
 
         ## this calculates the sin values for even indices
@@ -219,7 +219,7 @@ class EncoderBlock(nn.Module):
         ## storing the 2nd residual value
         x_resid2 = x
         x = self.feedforward(x)
-        x = self.dropout2(x)
+        # x = self.dropout2(x)
         x = self.layer_norm2(x + x_resid2)
         return x 
     
@@ -279,7 +279,7 @@ class DecoderBlock(nn.Module):
         x = self.layer_norm2(x + x_resid2)
         x_resid3 = x
         x = self.feedforward(x)
-        x = self.dropout2(x)
+        # x = self.dropout2(x)
         x = self.layer_norm2(x + x_resid3)
         return x   
     
