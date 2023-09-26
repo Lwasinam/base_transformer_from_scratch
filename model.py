@@ -89,7 +89,7 @@ class MultiHeadAttention(nn.Module):
         value = value.view(value.shape[0], value.shape[1],self.heads,self.head_dim).transpose(2,1)
 
 
-       
+        
         attention = query @ key.transpose(3,2)
 
      
@@ -115,7 +115,7 @@ class MultiHeadAttention(nn.Module):
 
         attention_scores = attention_scores.transpose(2,1)
        
-        return attention_scores.reshape(attention_scores.shape[0], attention_scores.shape[1], self.head_dim * self.heads)
+        return attention_scores.transpose(2,1).contiguous().view(attention_scores.shape[0], -1, self.head_dim * self.heads)
       
 
         #this gives us a dimension of batch, num_heads, seq_len by 64. basically 1 sentence is converted to have 8 parts (heads)
@@ -155,6 +155,7 @@ class LayerNormalize(nn.Module):
         std = torch.std(self.x, dim=-1,)
 
         ##normalizes the layer
+     
         norm = (self.x - mean.unsqueeze(-1)) / (std.unsqueeze(-1) + 10**-6)
         return self.alpha * norm + self.bias    
 
@@ -238,7 +239,7 @@ class Encoder(nn.Module):
         self.d_ff = d_ff
         self.positional_encoding = PositionalEncoding(self.seq_len, self.d_model, self.batch)
         self.encoder = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-    def forward(self,x, src_mask):
+    def forward(self,x, src_mask):  
         x = self.positional_encoding(x)
         for i in range(self.number_of_block):
             x = self.encoder(x, src_mask)
@@ -303,6 +304,7 @@ class Decoder(nn.Module):
 
     def forward(self, x, src_mask, tgt_mask, encoder_output):
         x = self.positional_encoding(x)
+        
         for i in range(self.number_of_block):
             x = self.decoder(x, src_mask, tgt_mask, encoder_output )
         return x

@@ -25,6 +25,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
 
     # Precompute the encoder output and reuse it for every step
     encoder_output = model.encode(source, source_mask)
+   
     # Initialize the decoder input with the sos token
     decoder_input = torch.empty(1, 1).fill_(sos_idx).type_as(source).to(device)
     while True:
@@ -37,6 +38,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
 
         # calculate output
         out = model.decode(decoder_input, source_mask, decoder_mask, encoder_output)
+        
 
         # get next token
         prob = model.project(out[:, -1])
@@ -180,7 +182,7 @@ def train_model(config):
 
     loss_fn = nn.CrossEntropyLoss(ignore_index=source_lang_tokenizer.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
-
+    # run_validation(model, val_dataloader, source_lang_tokenizer, target_lang_tokenizer, config['seq_len'], device, lambda msg: batch_iterator.write(msg))    
     for epoch in range(initial_epoch, config['num_epochs']):
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing Epoch {epoch:02d}")
