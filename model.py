@@ -52,7 +52,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('positional_encoding', positional_encoding)
     
     def forward(self, x):  
-         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to('cpu')
+         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
          return self.dropout(x)
 
 
