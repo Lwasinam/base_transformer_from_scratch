@@ -180,7 +180,6 @@ def train_model(config):
 
     loss_fn = nn.CrossEntropyLoss(ignore_index=source_lang_tokenizer.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
-  
 
     for epoch in range(initial_epoch, config['num_epochs']):
         model.train()

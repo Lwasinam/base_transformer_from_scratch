@@ -4,7 +4,7 @@ import math
 
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class InputEmbedding(nn.Module):
     def __init__(self, d_model, vocab_size) -> None:
         super().__init__()
@@ -88,7 +88,7 @@ class MultiHeadAttention(nn.Module):
         key = key.view(key.shape[0], key.shape[1],self.heads,self.head_dim).transpose(2,1)
         value = value.view(value.shape[0], value.shape[1],self.heads,self.head_dim).transpose(2,1)
 
-        print(f'query shape{query.shape}')
+
        
         attention = query @ key.transpose(3,2)
 
@@ -110,11 +110,11 @@ class MultiHeadAttention(nn.Module):
 
         attention_scores =  attention @ value 
 
-        print(f'attention  scores{attention_scores.shape}')
+     
         
 
         attention_scores = attention_scores.transpose(2,1)
-        print(f'attention  scores transpose {attention_scores.shape}')
+       
         return attention_scores.reshape(attention_scores.shape[0], attention_scores.shape[1], self.head_dim * self.heads)
       
 
@@ -217,7 +217,6 @@ class EncoderBlock(nn.Module):
         ##storing residual value
         x_resid = x
         x = self.multiheadattention(x,x,x, src_mask)
-        print(f'attention shape{x.shape}')
         x = self.layer_norm1(x + x_resid)
 
         ## storing the 2nd residual value
@@ -254,6 +253,7 @@ class DecoderBlock(nn.Module):
         super().__init__()
         self.seq_len = seq_len
         self.d_model = d_model
+        print()
         self.d_ff = d_ff
         self.batch = batch
         self.heads = head
