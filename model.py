@@ -4,7 +4,7 @@ import math
 
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cuda")
 class InputEmbedding(nn.Module):
     def __init__(self, d_model, vocab_size) -> None:
         super().__init__()
@@ -52,7 +52,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('positional_encoding', positional_encoding)
     
     def forward(self, x):  
-         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to('cuda')
+         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to('cpu')
          return self.dropout(x)
 
 
@@ -87,32 +87,35 @@ class MultiHeadAttention(nn.Module):
         query = query.view(query.shape[0], query.shape[1],self.heads,self.head_dim).transpose(2,1)
         key = key.view(key.shape[0], key.shape[1],self.heads,self.head_dim).transpose(2,1)
         value = value.view(value.shape[0], value.shape[1],self.heads,self.head_dim).transpose(2,1)
+
+        print(f'query shape{query.shape}')
        
         attention = query @ key.transpose(3,2)
+
+     
         
 
         attention = attention / math.sqrt(self.d_model)
 
         
-
-        
-        # print(mask.shape)
-        # print(attention.shape)
         
         if mask is not None:
             attention = attention.masked_fill_(mask == 0, -1e9)
             
-        attention = torch.softmax(attention, dim=3)    
+        attention = torch.softmax(attention, dim=-1)    
             
         if dropout is not None:
             attention = dropout(attention)
 
 
         attention_scores =  attention @ value 
+
+        print(f'attention  scores{attention_scores.shape}')
         
 
-
-        return attention_scores.view(attention_scores.shape[0], attention_scores.shape[2], self.head_dim * self.heads).transpose(2,1).transpose(2,1)
+        attention_scores = attention_scores.transpose(2,1)
+        print(f'attention  scores transpose {attention_scores.shape}')
+        return attention_scores.reshape(attention_scores.shape[0], attention_scores.shape[1], self.head_dim * self.heads)
       
 
         #this gives us a dimension of batch, num_heads, seq_len by 64. basically 1 sentence is converted to have 8 parts (heads)
@@ -152,7 +155,7 @@ class LayerNormalize(nn.Module):
         std = torch.std(self.x, dim=-1,)
 
         ##normalizes the layer
-        norm = (self.x - mean.unsqueeze(-1)) / (std.unsqueeze(-1) + 1e-6)
+        norm = (self.x - mean.unsqueeze(-1)) / (std.unsqueeze(-1) + 10**-6)
         return self.alpha * norm + self.bias    
 
 
@@ -197,7 +200,7 @@ class EncoderBlock(nn.Module):
         self.d_ff = d_ff
         self.batch = batch
         self.heads = head
-        self.positional_encoding = PositionalEncoding(self.seq_len, self.d_model, self.batch)
+        
         self.multiheadattention = MultiHeadAttention(self.d_model, self.batch, self.heads)
         self.layer_norm1 = LayerNormalize()
         self.dropout1 = nn.Dropout(p=0.1)
@@ -208,12 +211,13 @@ class EncoderBlock(nn.Module):
         ## following th encoder structure
         ## position_encoding -> multiheadattention -> add&layer_norm -> dropout -> feedforward -> add&layer_norm -> dropout
 
-        x = self.positional_encoding(x)
-        x = self.dropout1(x)
+       
+        # x = self.dropout1(x)
 
         ##storing residual value
         x_resid = x
         x = self.multiheadattention(x,x,x, src_mask)
+        print(f'attention shape{x.shape}')
         x = self.layer_norm1(x + x_resid)
 
         ## storing the 2nd residual value
@@ -233,9 +237,10 @@ class Encoder(nn.Module):
         self.d_model = d_model
         self.heads = head
         self.d_ff = d_ff
-
+        self.positional_encoding = PositionalEncoding(self.seq_len, self.d_model, self.batch)
         self.encoder = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
     def forward(self,x, src_mask):
+        x = self.positional_encoding(x)
         for i in range(self.number_of_block):
             x = self.encoder(x, src_mask)
         return x    
@@ -264,8 +269,8 @@ class DecoderBlock(nn.Module):
         ## following th encoder structure
         ## position_encoding -> multiheadattention -> add&layer_norm -> dropout -> feedforward -> add&layer_norm -> dropout
 
-        x = self.positional_encoding(x)
-        x = self.dropout1(x)
+        
+        # x = self.dropout1(x)
         x_resid = x
         x = self.multiheadattention(x,x,x, tgt_mask)
         x = self.layer_norm1(x + x_resid)
@@ -292,12 +297,12 @@ class Decoder(nn.Module):
         self.d_model = d_model
         self.heads = head
         self.d_ff = d_ff
-
+        self.positional_encoding = PositionalEncoding(self.seq_len, self.d_model, self.batch)
         self.decoder = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
 
 
     def forward(self, x, src_mask, tgt_mask, encoder_output):
-      
+        x = self.positional_encoding(x)
         for i in range(self.number_of_block):
             x = self.decoder(x, src_mask, tgt_mask, encoder_output )
         return x
