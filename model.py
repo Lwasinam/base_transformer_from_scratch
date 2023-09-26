@@ -100,7 +100,7 @@ class MultiHeadAttention(nn.Module):
         
         
         if mask is not None:
-            attention = attention.masked_fill_(mask == 0, -1e9)
+           attention = attention.masked_fill(mask == 0, -1e9)
             
         attention = torch.softmax(attention, dim=-1)    
             
@@ -113,7 +113,7 @@ class MultiHeadAttention(nn.Module):
      
         
 
-        attention_scores = attention_scores.transpose(2,1)
+        # attention_scores = attention_scores.transpose(2,1)
        
         return attention_scores.transpose(2,1).contiguous().view(attention_scores.shape[0], -1, self.head_dim * self.heads)
       
