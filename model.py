@@ -70,10 +70,10 @@ class MultiHeadAttention(nn.Module):
         assert self.d_model % self.heads == 0, 'cannot divide d_model by heads'
 
         ## initialize the query, key and value weights 512*512
-        self.query_weight = nn.Linear(self.d_model, self.d_model, )
-        self.key_weight = nn.Linear(self.d_model, self.d_model,)
-        self.value_weight = nn.Linear(self.d_model, self.d_model)
-        self.final_weight  = nn.Linear(self.d_model, d_model)
+        self.query_weight = nn.Linear(self.d_model, self.d_model, bias=False)
+        self.key_weight = nn.Linear(self.d_model, self.d_model,bias=False)
+        self.value_weight = nn.Linear(self.d_model, self.d_model,bias=False)
+        self.final_weight  = nn.Linear(self.d_model, d_model, bias=False)
         self.dropout = nn.Dropout(p=0.1)
 
    
@@ -143,8 +143,8 @@ class MultiHeadAttention(nn.Module):
 class LayerNormalize(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        self.alpha = nn.Parameter(torch.ones(1)) # multiplied
-        self.bias = nn.Parameter(torch.zeros(1)) # added 
+        self.alpha = nn.Parameter(torch.ones(512)) # multiplied
+        self.bias = nn.Parameter(torch.zeros(512)) # added 
 
     def forward(self,x):
         self.x = x
