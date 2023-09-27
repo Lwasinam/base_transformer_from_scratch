@@ -95,7 +95,7 @@ class MultiHeadAttention(nn.Module):
      
         
 
-        attention = attention / math.sqrt(self.d_model)
+        attention = attention / math.sqrt(64)
 
         
         
@@ -352,7 +352,7 @@ class Transformer(nn.Module):
         return x
 
 
-def build_transformer(seq_len, batch, target_vocab_size, source_vocab_size,  d_model):
+def build_transformer(seq_len, batch, target_vocab_size, source_vocab_size,  d_model)-> Transformer:
     
 
     transformer = Transformer(seq_len, batch,  d_model,  target_vocab_size, source_vocab_size,  )
