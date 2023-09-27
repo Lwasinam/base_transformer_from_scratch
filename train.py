@@ -196,6 +196,9 @@ def train_model(config):
             encoder_mask = batch['encoder_mask'].to(device) # (B, 1, 1, seq_len)
             decoder_mask = batch['decoder_mask'].to(device) # (B, 1, seq_len, seq_len)
 
+
+            
+
             encoder_output =   model.encode(encoder_input, encoder_mask)
             decoder_output = model.decode(decoder_input, encoder_mask,decoder_mask, encoder_output, )
             proj_output = model.project(decoder_output)        
@@ -211,6 +214,7 @@ def train_model(config):
             
             # Backpropagate the loss
             loss.backward()
+         
 
             # Update the weights
             optimizer.step()
