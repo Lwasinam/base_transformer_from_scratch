@@ -102,7 +102,7 @@ class MultiHeadAttention(nn.Module):
         if mask is not None:
            attention = attention.masked_fill(mask == 0, -1e9)
             
-        attention = torch.softmax(attention, dim=-1)    
+        attention = torch.softmax(attention, dim=3)    
             
         if dropout is not None:
             attention = dropout(attention)
