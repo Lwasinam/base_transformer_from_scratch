@@ -237,11 +237,26 @@ class Encoder(nn.Module):
         self.d_model = d_model
         self.heads = head
         self.d_ff = d_ff
-        self.encoder = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.encoder1 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.encoder2 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.encoder3 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.encoder4 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.encoder5 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.encoder6 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        
+        
+    
     def forward(self,x, src_mask):  
-        for i in range(self.number_of_block):
-            x = self.encoder(x, src_mask)
-        return x    
+        x = self.encoder1(x,src_mask)
+        x = self.encoder2(x,src_mask)
+        x = self.encoder3(x,src_mask)
+        x = self.encoder4(x,src_mask)
+        x = self.encoder5(x,src_mask)
+        x = self.encoder6(x,src_mask)
+        return x
+        # for i in range(self.number_of_block):
+        #     x = self.encoder(x, src_mask)
+        # return x    
 
 
 
@@ -299,15 +314,27 @@ class Decoder(nn.Module):
         self.heads = head
         self.d_ff = d_ff
         
-        self.decoder = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.decoder1 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.decoder2 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.decoder3 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.decoder4 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.decoder5 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
+        self.decoder6 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
 
 
     def forward(self, x, src_mask, tgt_mask, encoder_output):
+          x = self.decoder1(x, src_mask, tgt_mask, encoder_output)
+          x = self.decoder2(x, src_mask, tgt_mask, encoder_output)
+          x = self.decoder3(x, src_mask, tgt_mask, encoder_output)
+          x = self.decoder4(x, src_mask, tgt_mask, encoder_output)
+          x = self.decoder5(x, src_mask, tgt_mask, encoder_output)
+          x = self.decoder6(x, src_mask, tgt_mask, encoder_output)
+          return x
        
         
-        for i in range(self.number_of_block):
-            x = self.decoder(x, src_mask, tgt_mask, encoder_output )
-        return x
+        # for i in range(self.number_of_block):
+        #     x = self.decoder(x, src_mask, tgt_mask, encoder_output )
+        # return x
 
 
 class Transformer(nn.Module):
