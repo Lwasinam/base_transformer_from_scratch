@@ -259,10 +259,12 @@ class DecoderBlock(nn.Module):
         self.head_dim = self.d_model // self.heads
         
         self.multiheadattention = MultiHeadAttention(self.d_model, self.batch, self.heads)
+        self.crossattention = MultiHeadAttention(self.d_model, self.batch, self.heads)
         self.layer_norm1 = LayerNormalize()
         self.dropout1 = nn.Dropout(p=0.1)
         self.feedforward = FeedForward(self.d_model, self.d_ff)
         self.layer_norm2 = LayerNormalize()
+        self.layer_norm3 = LayerNormalize()
         self.dropout2 = nn.Dropout(p=0.1)
     def forward(self, x, src_mask, tgt_mask, encoder_output):
         ## following th encoder structure
@@ -277,14 +279,14 @@ class DecoderBlock(nn.Module):
 
 
         ##cross attention
-        x = self.multiheadattention(x, encoder_output, encoder_output, src_mask,)
+        x = self.crossattention(x, encoder_output, encoder_output, src_mask,)
 
        
         x = self.layer_norm2(x + x_resid2)
         x_resid3 = x
         x = self.feedforward(x)
         # x = self.dropout2(x)
-        x = self.layer_norm2(x + x_resid3)
+        x = self.layer_norm3(x + x_resid3)
         return x   
     
 class Decoder(nn.Module):
