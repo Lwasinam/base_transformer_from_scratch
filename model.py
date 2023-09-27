@@ -143,8 +143,8 @@ class MultiHeadAttention(nn.Module):
 class LayerNormalize(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        self.alpha = nn.Parameter(torch.ones(512)) # multiplied
-        self.bias = nn.Parameter(torch.zeros(512)) # added 
+        self.alpha = nn.Parameter(torch.ones(1)) # multiplied
+        self.bias = nn.Parameter(torch.zeros(1)) # added 
 
     def forward(self,x):
         self.x = x
