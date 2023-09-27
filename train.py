@@ -38,11 +38,15 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
 
         # calculate output
         out = model.decode(decoder_input, source_mask, decoder_mask, encoder_output)
+      
+       
         
 
         # get next token
         prob = model.project(out[:, -1])
+       
         _, next_word = torch.max(prob, dim=1)
+        print(f'next word index{next_word}')
         decoder_input = torch.cat(
             [decoder_input, torch.empty(1, 1).type_as(source).fill_(next_word.item()).to(device)], dim=1
         )
@@ -179,10 +183,10 @@ def train_model(config):
         initial_epoch = state['epoch'] + 1
         optimizer.load_state_dict(state['optimizer_state_dict'])
         global_step = state['global_step']
-
+    batch_iterator = tqdm(train_dataloader)
     loss_fn = nn.CrossEntropyLoss(ignore_index=source_lang_tokenizer.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
-    # run_validation(model, val_dataloader, source_lang_tokenizer, target_lang_tokenizer, config['seq_len'], device, lambda msg: batch_iterator.write(msg))    
+    run_validation(model, val_dataloader, source_lang_tokenizer, target_lang_tokenizer, config['seq_len'], device, lambda msg: batch_iterator.write(msg))    
     for epoch in range(initial_epoch, config['num_epochs']):
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing Epoch {epoch:02d}")
