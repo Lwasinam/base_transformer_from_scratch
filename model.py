@@ -81,7 +81,7 @@ class MultiHeadAttention(nn.Module):
         self.head_dim = d_model // self.heads
 
 
-    @staticmethod    
+    # @staticmethod    
     def self_attention(self,query, key, value, mask, dropout):
         #splitting query, key and value into heads
         query = query.view(query.shape[0], query.shape[1],self.heads,self.head_dim).transpose(2,1)
