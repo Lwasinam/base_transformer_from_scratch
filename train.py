@@ -169,7 +169,7 @@ def train_model(config):
     Path(config['model_folder']).mkdir(parents=True, exist_ok=True)
 
     train_dataloader, val_dataloader, source_lang_tokenizer, target_lang_tokenizer = get_dataset(config)
-    model = get_model(config).to(device)
+    model = get_model(config, target_lang_tokenizer, source_lang_tokenizer).to(device)
   
 
 
