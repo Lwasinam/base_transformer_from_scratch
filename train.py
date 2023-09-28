@@ -204,7 +204,7 @@ def train_model(config):
             
 
             encoder_output =   model.encode(encoder_input, encoder_mask)
-            decoder_output = model.decode(decoder_input, encoder_mask,decoder_mask, encoder_output, )
+            decoder_output = model.decode(decoder_input, decoder_mask,encoder_mask, encoder_output, )
             proj_output = model.project(decoder_output)        
 
 
