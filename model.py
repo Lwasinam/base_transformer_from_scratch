@@ -5,7 +5,7 @@ import math
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-class InputEmbedding(nn.Module):
+class InputEmbeddings(nn.Module):
     def __init__(self, d_model, vocab_size) -> None:
         super().__init__()
         self.d_model = d_model
@@ -353,8 +353,8 @@ class Transformer(nn.Module):
         self.encoder = Encoder(self.number_of_blocks,self.seq_len, self.batch, self.d_model, self.heads, self.d_ff )
         self.decoder = Decoder(self.number_of_blocks,self.seq_len, self.batch, self.d_model, self.heads, self.d_ff )
         self.projection = ProjectionLayer(self.d_model, self.target_vocab_size)
-        self.source_embedding = InputEmbedding(self.d_model,self.source_vocab_size )
-        self.target_embedding = InputEmbedding(self.d_model,self.target_vocab_size)
+        self.source_embedding = InputEmbeddings(self.d_model,self.source_vocab_size )
+        self.target_embedding = InputEmbeddings(self.d_model,self.target_vocab_size)
         self.positional_encoding = PositionalEncoding(self.seq_len, self.d_model, self.batch)
        
     # def forward(self, mask, source_idx, target_idx, padding_idx ):
@@ -371,7 +371,7 @@ class Transformer(nn.Module):
         x = self.positional_encoding(x)
         x = self.encoder(x, src_mask)
         return x
-    def decode(self,x, src_mask, tgt_mask, encoder_output,):
+    def decode(self,x, src_mask, tgt_mask, encoder_output):
         x = self.target_embedding(x)
         x = self.positional_encoding(x)
         x = self.decoder(x, src_mask,tgt_mask, encoder_output )
@@ -384,7 +384,7 @@ class Transformer(nn.Module):
 def build_transformer(seq_len, batch, target_vocab_size, source_vocab_size,  d_model)-> Transformer:
     
 
-    transformer = Transformer(seq_len, batch,  d_model,  target_vocab_size, source_vocab_size,  )
+    transformer = Transformer(seq_len, batch,  d_model,  target_vocab_size, source_vocab_size )
 
       #Initialize the parameters
     for p in transformer.parameters():
