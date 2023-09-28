@@ -7,7 +7,7 @@ import math
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class InputEmbeddings(nn.Module):
     def __init__(self, d_model, vocab_size) -> None:
-        super().__init__()
+        super(InputEmbeddings, self).__init__()
         self.d_model = d_model
         self.vocab_size = vocab_size
         self.embedding = nn.Embedding(vocab_size, d_model)
@@ -23,7 +23,7 @@ class InputEmbeddings(nn.Module):
 
 class PositionalEncoding(nn.Module):
     def __init__(self, seq_len, d_model, batch) -> None:
-        super().__init__()
+        super(PositionalEncoding, self).__init__()
         self.seq_len = seq_len
         self.d_model = d_model
         self.batch = batch
@@ -61,7 +61,7 @@ class PositionalEncoding(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_model, batch, heads) -> None:
-        super().__init__()
+        super(MultiHeadAttention,self).__init__()
         
         self.d_model = d_model
         self.batch = batch
@@ -142,7 +142,7 @@ class MultiHeadAttention(nn.Module):
 
 class LayerNormalization(nn.Module):
     def __init__(self) -> None:
-        super().__init__()
+        super(LayerNormalization, self).__init__()
         self.alpha = nn.Parameter(torch.ones(1)) # multiplied
         self.bias = nn.Parameter(torch.zeros(1)) # added 
 
@@ -163,7 +163,7 @@ class LayerNormalization(nn.Module):
 
 class FeedForward(nn.Module):
     def __init__(self,d_model, d_ff, ) -> None:
-        super().__init__()
+        super(FeedForward, self).__init__()
         self.d_model = d_model
         self.d_ff = d_ff
         self.fc1 = nn.Linear(self.d_model, self.d_ff)  # Fully connected layer 1
@@ -184,7 +184,7 @@ class FeedForward(nn.Module):
 
 class ProjectionLayer(nn.Module):
     def __init__(self, d_model, vocab_size) -> None:
-        super().__init__()
+        super(ProjectionLayer, self).__init__()
         self.d_model = d_model
         self.vocab_size = vocab_size
         self.fc = nn.Linear(self.d_model, self.vocab_size)
@@ -195,7 +195,7 @@ class ProjectionLayer(nn.Module):
 
 class EncoderBlock(nn.Module):
     def __init__(self, seq_len, batch, d_model, head, d_ff) -> None:
-        super().__init__()
+        super(EncoderBlock, self).__init__()
         self.seq_len = seq_len
         self.d_model = d_model
         self.d_ff = d_ff
@@ -231,7 +231,7 @@ class EncoderBlock(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self, number_of_block, seq_len, batch, d_model, head, d_ff) -> None:
-        super().__init__()
+        super(Encoder, self).__init__()
         self.number_of_block = number_of_block
         self.seq_len = seq_len
         self.batch = batch
@@ -256,7 +256,7 @@ class Encoder(nn.Module):
 
 class DecoderBlock(nn.Module):
     def __init__(self, seq_len, batch, d_model, head, d_ff) -> None:
-        super().__init__()
+        super(DecoderBlock, self).__init__()
         self.seq_len = seq_len
         self.d_model = d_model
         print()
@@ -302,7 +302,7 @@ class DecoderBlock(nn.Module):
 
 class Decoder(nn.Module):
     def __init__(self, number_of_block, seq_len, batch, d_model, head, d_ff) -> None:
-        super().__init__()
+        super(Decoder, self).__init__()
         self.number_of_block = number_of_block
         self.seq_len = seq_len
         self.batch = batch
@@ -323,7 +323,7 @@ class Decoder(nn.Module):
 
 class Transformer(nn.Module):
     def __init__(self, seq_len, batch, d_model,target_vocab_size, source_vocab_size, head: int = 8, d_ff: int =  2048, number_of_block: int = 6) -> None:
-        super().__init__()
+        super(Transformer, self).__init__()
         self.seq_len = seq_len
         self.d_model = d_model
         self.d_ff = d_ff
