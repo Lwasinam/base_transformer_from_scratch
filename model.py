@@ -36,7 +36,7 @@ class PositionalEncoding(nn.Module):
         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
     
         ## this calculates the scaling term per dimension (512)
-        div_term = torch.exp(torch.arange(0, self.d_model, 2) * -(math.log(10000.0) / self.d_model))
+        div_term = torch.exp(torch.arange(0, self.d_model, 2) * (-math.log(10000.0) / self.d_model))
 
         # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
       
@@ -52,7 +52,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('positional_encoding', positional_encoding)
     
     def forward(self, x):  
-         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
+         x =  x + (self.positional_encoding[:x.size(0)])
          return self.dropout(x)
 
 
@@ -217,18 +217,14 @@ class EncoderBlock(nn.Module):
 
         ##storing residual value
         x_resid = x
-        x = self.layer_norm1(x)
         x = self.multiheadattention(x,x,x, src_mask)
-        x = self.dropout1(x)
-        x = x + x_resid
+        x = self.layer_norm1(x + x_resid)
 
         ## storing the 2nd residual value
         x_resid2 = x
-        x = self.layer_norm1(x)
         x = self.feedforward(x)
-        x = self.dropout2(x)
-        x = x + x_resid2
-        x = self.layer_norm2(x)
+        # x = self.dropout2(x)
+        x = self.layer_norm2(x + x_resid2)
         return x
     
 
@@ -252,6 +248,7 @@ class Encoder(nn.Module):
         return x
      
     
+
 
 
 
