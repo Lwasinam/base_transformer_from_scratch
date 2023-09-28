@@ -217,14 +217,18 @@ class EncoderBlock(nn.Module):
 
         ##storing residual value
         x_resid = x
+        x = self.layer_norm1(x)
         x = self.multiheadattention(x,x,x, src_mask)
-        x = self.layer_norm1(x + x_resid)
+        x = self.dropout1(x)
+        x = x + x_resid
 
         ## storing the 2nd residual value
         x_resid2 = x
+        x = self.layer_norm1(x)
         x = self.feedforward(x)
-        # x = self.dropout2(x)
-        x = self.layer_norm2(x + x_resid2)
+        x = self.dropout2(x)
+        x = x + x_resid2
+        x = self.layer_norm2(x)
         return x
     
 
