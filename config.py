@@ -6,7 +6,7 @@ def get_config():
         'd_model': 512,
         'seq_len': 350,
         "num_epochs": 20,
-        "lr": 10**-3,
+        "lr": 10**-4,
         "seq_len": 350,
         "d_model": 512,
         "lang_src": "en",

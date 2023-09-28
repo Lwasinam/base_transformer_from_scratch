@@ -15,7 +15,7 @@ import os
 from pathlib import Path
 import torch.nn as nn
 
-ds_raw = load_dataset('opus_books', 'en-it', split = 'train')
+
 # config = get_config()
 
 def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_len, device):
@@ -119,10 +119,14 @@ def get_or_build_tokenizer(ds, lang):
     return tokenizer
 
 
-source_lang_tokenizer = get_or_build_tokenizer(ds_raw, 'en')
-target_lang_tokenizer = get_or_build_tokenizer(ds_raw, 'it')
+
 
 def get_dataset(config):
+
+    ds_raw = load_dataset('opus_books', 'en-it', split = 'train')
+
+    source_lang_tokenizer = get_or_build_tokenizer(ds_raw, 'en')
+    target_lang_tokenizer = get_or_build_tokenizer(ds_raw, 'it')
     seed = 42  # You can choose any integer as your seed
     torch.manual_seed(seed)
       # Keep 90% for training, 10% for validation
@@ -149,9 +153,9 @@ def get_dataset(config):
     train_dataloader = DataLoader(train_ds, batch_size=config['batch_size'], shuffle=True)
     val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)
 
-    return train_dataloader, val_dataloader
+    return train_dataloader, val_dataloader, source_lang_tokenizer, target_lang_tokenizer
 
-def get_model(config):
+def get_model(config, target_lang_tokenizer, source_lang_tokenizer):
    model =  build_transformer(config['seq_len'], config['batch_size'], target_lang_tokenizer.get_vocab_size(), source_lang_tokenizer.get_vocab_size(), config['d_model'])
    return model
 
@@ -164,7 +168,7 @@ def train_model(config):
     # Make sure the weights folder exists
     Path(config['model_folder']).mkdir(parents=True, exist_ok=True)
 
-    train_dataloader, val_dataloader = get_dataset(config)
+    train_dataloader, val_dataloader, source_lang_tokenizer, target_lang_tokenizer = get_dataset(config)
     model = get_model(config).to(device)
   
 
