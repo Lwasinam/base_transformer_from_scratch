@@ -140,7 +140,7 @@ class MultiHeadAttention(nn.Module):
     
 
 
-class LayerNormalize(nn.Module):
+class LayerNormalization(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         self.alpha = nn.Parameter(torch.ones(1)) # multiplied
@@ -203,10 +203,10 @@ class EncoderBlock(nn.Module):
         self.heads = head
         
         self.multiheadattention = MultiHeadAttention(self.d_model, self.batch, self.heads)
-        self.layer_norm1 = LayerNormalize()
+        self.layer_norm1 = LayerNormalization()
         self.dropout1 = nn.Dropout(p=0.1)
         self.feedforward = FeedForward(self.d_model, self.d_ff)
-        self.layer_norm2 = LayerNormalize()
+        self.layer_norm2 = LayerNormalization()
         self.dropout2 = nn.Dropout(p=0.1)
     def forward(self, x, src_mask):
         ## following th encoder structure
@@ -225,7 +225,7 @@ class EncoderBlock(nn.Module):
         x = self.feedforward(x)
         # x = self.dropout2(x)
         x = self.layer_norm2(x + x_resid2)
-        return x 
+        return x
     
 
 class Encoder(nn.Module):
@@ -237,27 +237,17 @@ class Encoder(nn.Module):
         self.d_model = d_model
         self.heads = head
         self.d_ff = d_ff
-        self.encoder1 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.encoder2 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.encoder3 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.encoder4 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.encoder5 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.encoder6 = EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        
-        
-    
-    def forward(self,x, src_mask):  
-        x = self.encoder1(x,src_mask)
-        x = self.encoder2(x,src_mask)
-        x = self.encoder3(x,src_mask)
-        x = self.encoder4(x,src_mask)
-        x = self.encoder5(x,src_mask)
-        x = self.encoder6(x,src_mask)
-        return x
-        # for i in range(self.number_of_block):
-        #     x = self.encoder(x, src_mask)
-        # return x    
 
+        # Use nn.ModuleList to store the EncoderBlock instances
+        self.encoders = nn.ModuleList([EncoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff) 
+                                       for _ in range(self.number_of_block)])
+
+    def forward(self, x, src_mask):
+        for encoder_block in self.encoders:
+            x = encoder_block(x, src_mask)
+        return x
+     
+    
 
 
 
@@ -275,11 +265,11 @@ class DecoderBlock(nn.Module):
         
         self.multiheadattention = MultiHeadAttention(self.d_model, self.batch, self.heads)
         self.crossattention = MultiHeadAttention(self.d_model, self.batch, self.heads)
-        self.layer_norm1 = LayerNormalize()
+        self.layer_norm1 = LayerNormalization()
         self.dropout1 = nn.Dropout(p=0.1)
         self.feedforward = FeedForward(self.d_model, self.d_ff)
-        self.layer_norm2 = LayerNormalize()
-        self.layer_norm3 = LayerNormalize()
+        self.layer_norm2 = LayerNormalization()
+        self.layer_norm3 = LayerNormalization()
         self.dropout2 = nn.Dropout(p=0.1)
     def forward(self, x, src_mask, tgt_mask, encoder_output):
         ## following th encoder structure
@@ -302,8 +292,8 @@ class DecoderBlock(nn.Module):
         x = self.feedforward(x)
         # x = self.dropout2(x)
         x = self.layer_norm3(x + x_resid3)
-        return x   
-    
+        return x
+
 class Decoder(nn.Module):
     def __init__(self, number_of_block, seq_len, batch, d_model, head, d_ff) -> None:
         super().__init__()
@@ -313,28 +303,16 @@ class Decoder(nn.Module):
         self.d_model = d_model
         self.heads = head
         self.d_ff = d_ff
-        
-        self.decoder1 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.decoder2 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.decoder3 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.decoder4 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.decoder5 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
-        self.decoder6 = DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff)
 
+        # Use nn.ModuleList to store the DecoderBlock instances
+        self.decoders = nn.ModuleList([DecoderBlock(self.seq_len, self.batch, self.d_model, self.heads, self.d_ff) 
+                                       for _ in range(self.number_of_block)])
 
     def forward(self, x, src_mask, tgt_mask, encoder_output):
-          x = self.decoder1(x, src_mask, tgt_mask, encoder_output)
-          x = self.decoder2(x, src_mask, tgt_mask, encoder_output)
-          x = self.decoder3(x, src_mask, tgt_mask, encoder_output)
-          x = self.decoder4(x, src_mask, tgt_mask, encoder_output)
-          x = self.decoder5(x, src_mask, tgt_mask, encoder_output)
-          x = self.decoder6(x, src_mask, tgt_mask, encoder_output)
-          return x
-       
-        
-        # for i in range(self.number_of_block):
-        #     x = self.decoder(x, src_mask, tgt_mask, encoder_output )
-        # return x
+        for decoder_block in self.decoders:
+            x = decoder_block(x, src_mask, tgt_mask, encoder_output)
+        return x       
+    
 
 
 class Transformer(nn.Module):
