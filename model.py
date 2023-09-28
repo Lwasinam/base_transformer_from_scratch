@@ -36,7 +36,7 @@ class PositionalEncoding(nn.Module):
         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
     
         ## this calculates the scaling term per dimension (512)
-        div_term = torch.exp(torch.arange(0, self.d_model, 2) * (-math.log(10000.0) / self.d_model))
+        div_term = torch.exp(torch.arange(0, self.d_model, 2) * (math.log(10000.0) / self.d_model))
 
         # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
       
@@ -52,7 +52,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('positional_encoding', positional_encoding)
     
     def forward(self, x):  
-         x =  x + (self.positional_encoding[:x.size(0)])
+         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
          return self.dropout(x)
 
 
@@ -213,17 +213,18 @@ class EncoderBlock(nn.Module):
         ## position_encoding -> multiheadattention -> add&layer_norm -> dropout -> feedforward -> add&layer_norm -> dropout
 
        
-        # x = self.dropout1(x)
+       
 
         ##storing residual value
         x_resid = x
         x = self.multiheadattention(x,x,x, src_mask)
+        x = self.dropout1(x)
         x = self.layer_norm1(x + x_resid)
 
         ## storing the 2nd residual value
         x_resid2 = x
         x = self.feedforward(x)
-        # x = self.dropout2(x)
+        x = self.dropout2(x)
         x = self.layer_norm2(x + x_resid2)
         return x
     
@@ -272,26 +273,30 @@ class DecoderBlock(nn.Module):
         self.layer_norm2 = LayerNormalization()
         self.layer_norm3 = LayerNormalization()
         self.dropout2 = nn.Dropout(p=0.1)
+        self.dropout3 = nn.Dropout(p=0.1)
     def forward(self, x, src_mask, tgt_mask, encoder_output):
         ## following th encoder structure
         ## position_encoding -> multiheadattention -> add&layer_norm -> dropout -> feedforward -> add&layer_norm -> dropout
 
         
-        # x = self.dropout1(x)
+        
         x_resid = x
         x = self.multiheadattention(x,x,x, tgt_mask)
+        x = self.dropout1(x)
         x = self.layer_norm1(x + x_resid)
         x_resid2 = x
 
 
         ##cross attention
         x = self.crossattention(x, encoder_output, encoder_output, src_mask,)
+        x = self.dropout2(x)
+        
 
        
         x = self.layer_norm2(x + x_resid2)
         x_resid3 = x
         x = self.feedforward(x)
-        # x = self.dropout2(x)
+        x = self.dropout3(x)
         x = self.layer_norm3(x + x_resid3)
         return x
 
