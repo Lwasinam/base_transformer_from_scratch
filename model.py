@@ -21,39 +21,63 @@ class InputEmbeddings(nn.Module):
 
 
 
+
+
 class PositionalEncoding(nn.Module):
-    def __init__(self, seq_len, d_model, batch) -> None:
-        super(PositionalEncoding, self).__init__()
-        self.seq_len = seq_len
-        self.d_model = d_model
-        self.batch = batch
-        self.dropout = nn.Dropout(p=0.1)
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, 1, d_model)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: torch.tensor) -> torch.tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
+        """
+        x = x + self.pe[:x.size(0)]
+        return self.dropout(x)
+
+
+# class PositionalEncoding(nn.Module):
+#     def __init__(self, seq_len, d_model, batch) -> None:
+#         super(PositionalEncoding, self).__init__()
+#         self.seq_len = seq_len
+#         self.d_model = d_model
+#         self.batch = batch
+#         self.dropout = nn.Dropout(p=0.1)
     
-        ##initialize the positional encoding with zeros
-        positional_encoding = torch.zeros(self.seq_len, self.d_model)
+#         ##initialize the positional encoding with zeros
+#         positional_encoding = torch.zeros(self.seq_len, self.d_model)
      
-        ##first path of the equation is postion/scaling factor per dimesnsion
-        postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
+#         ##first path of the equation is postion/scaling factor per dimesnsion
+#         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
     
-        ## this calculates the scaling term per dimension (512)
-        div_term = torch.exp(torch.arange(0, self.d_model, 2) * (math.log(10000.0) / self.d_model))
+#         ## this calculates the scaling term per dimension (512)
+#         div_term = torch.exp(torch.arange(0, self.d_model, 2) * -(math.log(10000.0) / self.d_model))
 
-        # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
+#         # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
       
 
-        ## this calculates the sin values for even indices
-        positional_encoding[:, 0::2] = torch.sin(postion * div_term) 
+#         ## this calculates the sin values for even indices
+#         positional_encoding[:, 0::2] = torch.sin(postion * div_term) 
 
       
-        ## this calculates the cos values for odd indices
-        positional_encoding[:, 1::2] = torch.cos(postion * div_term)
+#         ## this calculates the cos values for odd indices
+#         positional_encoding[:, 1::2] = torch.cos(postion * div_term)
 
-        positional_encoding = positional_encoding.unsqueeze(0)
-        self.register_buffer('positional_encoding', positional_encoding)
+#         positional_encoding = positional_encoding.unsqueeze(0)
+#         self.register_buffer('positional_encoding', positional_encoding)
     
-    def forward(self, x):  
-         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
-         return self.dropout(x)
+#     def forward(self, x):  
+#          x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
+#          return self.dropout(x)
 
 
 
@@ -339,7 +363,7 @@ class Transformer(nn.Module):
         self.projection = ProjectionLayer(self.d_model, self.target_vocab_size)
         self.source_embedding = InputEmbeddings(self.d_model,self.source_vocab_size )
         self.target_embedding = InputEmbeddings(self.d_model,self.target_vocab_size)
-        self.positional_encoding = PositionalEncoding(self.seq_len, self.d_model, self.batch)
+        self.positional_encoding = PositionalEncoding(self.d_model, 0.1, self.seq_len)
        
     # def forward(self, mask, source_idx, target_idx, padding_idx ):
        

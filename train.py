@@ -190,7 +190,7 @@ def train_model(config):
         optimizer.load_state_dict(state['optimizer_state_dict'])
         global_step = state['global_step']
     # batch_iterator = tqdm(train_dataloader)
-    loss_fn = nn.CrossEntropyLoss(ignore_index=source_lang_tokenizer.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=target_lang_tokenizer.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
     # run_validation(model, val_dataloader, source_lang_tokenizer, target_lang_tokenizer, config['seq_len'], device, lambda msg: batch_iterator.write(msg))    
     for epoch in range(initial_epoch, config['num_epochs']):
