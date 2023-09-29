@@ -70,7 +70,7 @@ class MultiHeadAttention(nn.Module):
         
 
 
-        assert self.d_model % self.heads == 0, 'cannot divide d_model by heads'
+        assert d_model % heads == 0, 'cannot divide d_model by heads'
 
         ## initialize the query, key and value weights 512*512
         self.query_weight = nn.Linear(d_model, d_model, bias=False)
@@ -118,7 +118,7 @@ class MultiHeadAttention(nn.Module):
 
         # attention_scores = attention_scores.transpose(2,1)
        
-        return attention_scores.transpose(2,1).contiguous().view(attention_scores.shape[0], -1, self.head_dim * self.heads)
+        return attention_scores.transpose(2,1).contiguous().view(attention_scores.shape[0], -1, self.head_dim * self.head)
       
 
         #this gives us a dimension of batch, num_heads, seq_len by 64. basically 1 sentence is converted to have 8 parts (heads)
