@@ -9,7 +9,6 @@ class InputEmbeddings(nn.Module):
     def __init__(self, d_model, vocab_size) -> None:
         super(InputEmbeddings, self).__init__()
         self.d_model = d_model
-        self.vocab_size = vocab_size
         self.embedding = nn.Embedding(vocab_size, d_model)
 
 
@@ -105,13 +104,16 @@ class MultiHeadAttention(nn.Module):
         if mask is not None:
            attention = attention.masked_fill(mask == 0, -1e9)
             
-        attention = torch.softmax(attention, dim=3)    
+        attention = torch.softmax(attention, dim=3)
+      
+
             
         if dropout is not None:
             attention = dropout(attention)
 
 
-        attention_scores =  attention @ value 
+        attention_scores =  attention @ value
+      
 
      
         
