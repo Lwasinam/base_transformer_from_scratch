@@ -205,23 +205,20 @@ class EncoderBlock(nn.Module):
         self.layer_norm2 = nn.LayerNorm(d_model)
         self.dropout2 = nn.Dropout(p=0.1)
     def forward(self, x, src_mask):
-        ## following th encoder structure
-        ## position_encoding -> multiheadattention -> add&layer_norm -> dropout -> feedforward -> add&layer_norm -> dropout
-
-       
-       
-
-        ##storing residual value
+       # Self-attention block
         x_resid = x
-        x = self.multiheadattention(x,x,x, src_mask)
-        x = self.dropout1(x)
-        x = self.layer_norm1(x + x_resid)
+        x = self.multihead_attention(x, x, x, src_mask)
+        x = self.dropout(x)
+        x = x_resid + x
+        x = self.layer_norm1(x)
 
-        ## storing the 2nd residual value
+        # Feedforward block
         x_resid2 = x
-        x = self.feedforward(x)
-        x = self.dropout2(x)
-        x = self.layer_norm2(x + x_resid2)
+        x = self.feed_forward(x)
+        x = self.dropout(x)
+        x = x_resid2 + x
+        x = self.layer_norm2(x)
+
         return x
     
 
@@ -265,42 +262,33 @@ class DecoderBlock(nn.Module):
         self.dropout2 = nn.Dropout(p=0.1)
         self.dropout3 = nn.Dropout(p=0.1)
     def forward(self, x, src_mask, tgt_mask, encoder_output):
-        ## following th encoder structure
-        ## position_encoding -> multiheadattention -> add&layer_norm -> dropout -> feedforward -> add&layer_norm -> dropout
-
-        
-        
+         # Self-attention block
         x_resid = x
-        x = self.multiheadattention(x,x,x, tgt_mask)
-        x = self.dropout1(x)
-        x = self.layer_norm1(x + x_resid)
+        x = self.multihead_attention(x, x, x, tgt_mask)
+        x = self.dropout(x)
+        x = x_resid + x
+        x = self.layer_norm1(x)
+
+        # Cross-attention block
         x_resid2 = x
+        x = self.cross_attention(x, encoder_output, encoder_output, src_mask)
+        x = self.dropout(x)
+        x = x_resid2 + x
+        x = self.layer_norm2(x)
 
-
-        ##cross attention
-        x = self.crossattention(x, encoder_output, encoder_output, src_mask,)
-        x = self.dropout2(x)
-        
-
-       
-        x = self.layer_norm2(x + x_resid2)
+        # Feedforward block
         x_resid3 = x
-        x = self.feedforward(x)
-        x = self.dropout3(x)
-        x = self.layer_norm3(x + x_resid3)
+        x = self.feed_forward(x)
+        x = self.dropout(x)
+        x = x_resid3 + x
+        x = self.layer_norm3(x)
+
         return x
 
 class Decoder(nn.Module):
     def __init__(self, number_of_block, seq_len, batch, d_model, head, d_ff) -> None:
         super(Decoder, self).__init__()
-        # self.number_of_block = number_of_block
-        # self.seq_len = seq_len
-        # self.batch = batch
-        # self.d_model = d_model
-        # self.heads = head
-        # self.d_ff = d_ff
-
-        # Use nn.ModuleList to store the DecoderBlock instances
+ 
         self.decoders = nn.ModuleList([DecoderBlock(seq_len, batch, d_model, head, d_ff) 
                                        for _ in range(number_of_block)])
 
