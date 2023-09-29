@@ -288,13 +288,13 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
       
 
         # calculate output
-        out = model.decode(decoder_input, encoder_mask, decoder_mask, encoder_output) 
-        print(f'out: {out.shape}')
+        out = model.decode(decoder_input, source_mask, decoder_mask, encoder_output) 
+     
 
         # get next token
         prob = model.project(out[:, -1])
         _, next_word = torch.max(prob, dim=1)
-        print(f'prob: {prob.shape}')
+     
         decoder_input = torch.cat(
             [decoder_input, torch.empty(1, 1).type_as(source).fill_(next_word.item()).to(device)], dim=1
         )
@@ -305,7 +305,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
     return decoder_input.squeeze(0)
 
 
-def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, device, print_msg, global_step, writer, num_examples=2):
+def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, device, print_msg, global_step,num_examples=2):
     model.eval()
     count = 0
 
@@ -352,25 +352,25 @@ def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, 
                 print_msg('-'*console_width)
                 break
     
-    if writer:
-        # Evaluate the character error rate
-        # Compute the char error rate 
-        metric = torchmetrics.CharErrorRate()
-        cer = metric(predicted, expected)
-        writer.add_scalar('validation cer', cer, global_step)
-        writer.flush()
+    # if writer:
+    #     # Evaluate the character error rate
+    #     # Compute the char error rate 
+    #     metric = torchmetrics.CharErrorRate()
+    #     cer = metric(predicted, expected)
+    #     writer.add_scalar('validation cer', cer, global_step)
+    #     writer.flush()
 
-        # Compute the word error rate
-        metric = torchmetrics.WordErrorRate()
-        wer = metric(predicted, expected)
-        writer.add_scalar('validation wer', wer, global_step)
-        writer.flush()
+    #     # Compute the word error rate
+    #     metric = torchmetrics.WordErrorRate()
+    #     wer = metric(predicted, expected)
+    #     writer.add_scalar('validation wer', wer, global_step)
+    #     writer.flush()
 
-        # Compute the BLEU metric
-        metric = torchmetrics.BLEUScore()
-        bleu = metric(predicted, expected)
-        writer.add_scalar('validation BLEU', bleu, global_step)
-        writer.flush()
+    #     # Compute the BLEU metric
+    #     metric = torchmetrics.BLEUScore()
+    #     bleu = metric(predicted, expected)
+    #     writer.add_scalar('validation BLEU', bleu, global_step)
+    #     writer.flush()
 
 def get_all_sentences(ds, lang):
     for item in ds:
@@ -456,7 +456,7 @@ def train_model(config):
         global_step = state['global_step']
 
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
-    # run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config['seq_len'], device, lambda msg: batch_iterator.write(msg), global_step, writer)
+    run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config['seq_len'], device, lambda msg: batch_iterator.write(msg), global_step, writer)
     for epoch in range(initial_epoch, config['num_epochs']):
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing Epoch {epoch:02d}")
@@ -496,7 +496,7 @@ def train_model(config):
             global_step += 1
 
         # Run validation at the end of every epoch
-        run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config['seq_len'], device, lambda msg: batch_iterator.write(msg), global_step, writer)
+        run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config['seq_len'], device, lambda msg: batch_iterator.write(msg), global_step)
 
         # Save the model at the end of every epoch
         model_filename = get_weights_file_path(config, f"{epoch:02d}")
