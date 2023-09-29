@@ -24,60 +24,38 @@ class InputEmbeddings(nn.Module):
 
 
 class PositionalEncoding(nn.Module):
-
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
-        super().__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
-
-    def forward(self, x: torch.tensor) -> torch.tensor:
-        """
-        Arguments:
-            x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
-        """
-        x = x + self.pe[:x.size(0)]
-        return self.dropout(x)
-
-
-# class PositionalEncoding(nn.Module):
-#     def __init__(self, seq_len, d_model, batch) -> None:
-#         super(PositionalEncoding, self).__init__()
-#         self.seq_len = seq_len
-#         self.d_model = d_model
-#         self.batch = batch
-#         self.dropout = nn.Dropout(p=0.1)
+    def __init__(self, seq_len, d_model, batch) -> None:
+        super(PositionalEncoding, self).__init__()
+        self.seq_len = seq_len
+        self.d_model = d_model
+        self.batch = batch
+        self.dropout = nn.Dropout(p=0.1)
     
-#         ##initialize the positional encoding with zeros
-#         positional_encoding = torch.zeros(self.seq_len, self.d_model)
+        ##initialize the positional encoding with zeros
+        positional_encoding = torch.zeros(self.seq_len, self.d_model)
      
-#         ##first path of the equation is postion/scaling factor per dimesnsion
-#         postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
+        ##first path of the equation is postion/scaling factor per dimesnsion
+        postion  = torch.arange(0, self.seq_len, dtype=torch.float).unsqueeze(1)
     
-#         ## this calculates the scaling term per dimension (512)
-#         div_term = torch.exp(torch.arange(0, self.d_model, 2) * -(math.log(10000.0) / self.d_model))
+        ## this calculates the scaling term per dimension (512)
+        div_term = torch.exp(torch.arange(0, self.d_model, 2) * -(math.log(10000.0) / self.d_model))
 
-#         # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
+        # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
       
 
-#         ## this calculates the sin values for even indices
-#         positional_encoding[:, 0::2] = torch.sin(postion * div_term) 
+        ## this calculates the sin values for even indices
+        positional_encoding[:, 0::2] = torch.sin(postion * div_term) 
 
       
-#         ## this calculates the cos values for odd indices
-#         positional_encoding[:, 1::2] = torch.cos(postion * div_term)
+        ## this calculates the cos values for odd indices
+        positional_encoding[:, 1::2] = torch.cos(postion * div_term)
 
-#         positional_encoding = positional_encoding.unsqueeze(0)
-#         self.register_buffer('positional_encoding', positional_encoding)
+        positional_encoding = positional_encoding.unsqueeze(0)
+        self.register_buffer('positional_encoding', positional_encoding)
     
-#     def forward(self, x):  
-#          x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
-#          return self.dropout(x)
+    def forward(self, x):  
+         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
+         return self.dropout(x)
 
 
 
@@ -345,60 +323,97 @@ class Decoder(nn.Module):
     
 
 
+
+
 class Transformer(nn.Module):
-    def __init__(self, seq_len, batch, d_model,target_vocab_size, source_vocab_size, head: int = 8, d_ff: int =  2048, number_of_block: int = 6) -> None:
-        super(Transformer, self).__init__()
-        self.seq_len = seq_len
-        self.d_model = d_model
-        self.d_ff = d_ff
-        self.number_of_blocks = number_of_block
-        self.batch = batch
-        self.heads = head
-        self.target_vocab_size = target_vocab_size
-        self.source_vocab_size  = source_vocab_size
+
+    def __init__(self, encoder: Encoder, decoder: Decoder, src_embed: InputEmbeddings, tgt_embed: InputEmbeddings, src_pos: PositionalEncoding, tgt_pos: PositionalEncoding, projection_layer: ProjectionLayer) -> None:
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.src_embed = src_embed
+        self.tgt_embed = tgt_embed
+        self.src_pos = src_pos
+        self.tgt_pos = tgt_pos
+        self.projection_layer = projection_layer
+
+    def encode(self, src, src_mask):
+        # (batch, seq_len, d_model)
+        src = self.src_embed(src)
+        src = self.src_pos(src)
+        return self.encoder(src, src_mask)
+    
+    def decode(self, encoder_output: torch.Tensor, src_mask: torch.Tensor, tgt: torch.Tensor, tgt_mask: torch.Tensor):
+        # (batch, seq_len, d_model)
+        tgt = self.tgt_embed(tgt)
+        tgt = self.tgt_pos(tgt)
+        return self.decoder(tgt, encoder_output, src_mask, tgt_mask)
+    
+    def project(self, x):
+        # (batch, seq_len, vocab_size)
+        return self.projection_layer(x)
+# class Transformer(nn.Module):
+#     def __init__(self, seq_len, batch, d_model,target_vocab_size, source_vocab_size, head: int = 8, d_ff: int =  2048, number_of_block: int = 6) -> None:
+#         super(Transformer, self).__init__()
+#         self.seq_len = seq_len
+#         self.d_model = d_model
+#         self.d_ff = d_ff
+#         self.number_of_blocks = number_of_block
+#         self.batch = batch
+#         self.heads = head
+#         self.target_vocab_size = target_vocab_size
+#         self.source_vocab_size  = source_vocab_size
    
        
-        self.encoder = Encoder(self.number_of_blocks,self.seq_len, self.batch, self.d_model, self.heads, self.d_ff )
-        self.decoder = Decoder(self.number_of_blocks,self.seq_len, self.batch, self.d_model, self.heads, self.d_ff )
-        self.projection = ProjectionLayer(self.d_model, self.target_vocab_size)
-        self.source_embedding = InputEmbeddings(self.d_model,self.source_vocab_size )
-        self.target_embedding = InputEmbeddings(self.d_model,self.target_vocab_size)
-        self.positional_encoding = PositionalEncoding(self.d_model, 0.1, self.seq_len)
+#         self.encoder = Encoder(self.number_of_blocks,self.seq_len, self.batch, self.d_model, self.heads, self.d_ff )
+#         self.decoder = Decoder(self.number_of_blocks,self.seq_len, self.batch, self.d_model, self.heads, self.d_ff )
+#         self.projection = ProjectionLayer(self.d_model, self.target_vocab_size)
+#         self.source_embedding = InputEmbeddings(self.d_model,self.source_vocab_size )
+#         self.target_embedding = InputEmbeddings(self.d_model,self.target_vocab_size)
+#         self.positional_encoding = PositionalEncoding(self.seq_len, self.d_model, self.batch)
        
-    # def forward(self, mask, source_idx, target_idx, padding_idx ):
+#     # def forward(self, mask, source_idx, target_idx, padding_idx ):
        
 
 
         
-    #     x = self.encoder(self.target_embedding)
-    #     x = self.decoder(self.source_embedding, mask, x)
-    #     x = self.projection(x)
-    #     return x
-    def encode(self,x, src_mask):
-        x = self.source_embedding(x)
-        x = self.positional_encoding(x)
-        x = self.encoder(x, src_mask)
-        return x
-    def decode(self,x, src_mask, tgt_mask, encoder_output):
-        x = self.target_embedding(x)
-        x = self.positional_encoding(x)
-        x = self.decoder(x, src_mask,tgt_mask, encoder_output )
-        return x
-    def project(self, x):
-        x = self.projection(x)
-        return x
+#     #     x = self.encoder(self.target_embedding)
+#     #     x = self.decoder(self.source_embedding, mask, x)
+#     #     x = self.projection(x)
+#     #     return x
+#     def encode(self,x, src_mask):
+#         x = self.source_embedding(x)
+#         x = self.positional_encoding(x)
+#         x = self.encoder(x, src_mask)
+#         return x
+#     def decode(self,x, src_mask, tgt_mask, encoder_output):
+#         x = self.target_embedding(x)
+#         x = self.positional_encoding(x)
+#         x = self.decoder(x, src_mask,tgt_mask, encoder_output )
+#         return x
+#     def project(self, x):
+#         x = self.projection(x)
+#         return x
 
 
 def build_transformer(seq_len, batch, target_vocab_size, source_vocab_size,  d_model)-> Transformer:
+
+    encoder = Encoder(6,seq_len, batch, d_model, 8, 2048 )
+    decoder = Decoder(6,seq_len, batch, d_model, 8, 2048 )
+    projection = ProjectionLayer(d_model, target_vocab_size)
+    source_embedding = InputEmbeddings(d_model,source_vocab_size )
+    target_embedding = InputEmbeddings(d_model,target_vocab_size)
+    positional_encoding = PositionalEncoding(seq_len, d_model, batch)
     
 
-    transformer = Transformer(seq_len, batch,  d_model,  target_vocab_size, source_vocab_size )
-
-      #Initialize the parameters
+    transformer = Transformer(encoder, decoder,  source_embedding,  target_embedding, positional_encoding, positional_encoding, projection)
+    #Initialize the parameters
     for p in transformer.parameters():
         if p.dim() > 1:
             nn.init.xavier_uniform_(p)
     return transformer 
+
+
 
 
 
