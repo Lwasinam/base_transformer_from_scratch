@@ -61,83 +61,145 @@ class PositionalEncoding(nn.Module):
 
 
 
-class MultiHeadAttention(nn.Module):
-    def __init__(self, d_model, batch, heads) -> None:
-        super(MultiHeadAttention,self).__init__()
-        self.head = heads
-        self.head_dim = d_model // heads
+
+
+
+class MultiHeadAttentionBlock(nn.Module):
+
+    def __init__(self, d_model: int, h: int, dropout: float) -> None:
+        super().__init__()
+        self.d_model = d_model # Embedding vector size
+        self.h = h # Number of heads
+        # Make sure d_model is divisible by h
+        assert d_model % h == 0, "d_model is not divisible by h"
+
+        self.d_k = d_model // h # Dimension of vector seen by each head
+        self.w_q = nn.Linear(d_model, d_model) # Wq
+        self.w_k = nn.Linear(d_model, d_model) # Wk
+        self.w_v = nn.Linear(d_model, d_model) # Wv
+        self.w_o = nn.Linear(d_model, d_model) # Wo
+        self.dropout = nn.Dropout(dropout)
+
+    @staticmethod
+    def attention(query, key, value, mask, dropout: nn.Dropout):
+        d_k = query.shape[-1]
+        # Just apply the formula from the paper
+        # (batch, h, seq_len, d_k) --> (batch, h, seq_len, seq_len)
+       
+        attention_scores = (query @ key.transpose(-2, -1)) / math.sqrt(d_k)
+       
+       
+        if mask is not None:
+            # Write a very low value (indicating -inf) to the positions where mask == 0
+            attention_scores.masked_fill_(mask == 0, -1e9)
+        attention_scores = attention_scores.softmax(dim=-1) # (batch, h, seq_len, seq_len) # Apply softmax
+        if dropout is not None:
+            attention_scores = dropout(attention_scores)
+        # (batch, h, seq_len, seq_len) --> (batch, h, seq_len, d_k)
+        # return attention scores which can be used for visualization
+        return (attention_scores @ value), attention_scores
+
+    def forward(self, q, k, v, mask):
+        query = self.w_q(q) # (batch, seq_len, d_model) --> (batch, seq_len, d_model)
+        key = self.w_k(k) # (batch, seq_len, d_model) --> (batch, seq_len, d_model)
+        value = self.w_v(v) # (batch, seq_len, d_model) --> (batch, seq_len, d_model)
+
+        # (batch, seq_len, d_model) --> (batch, seq_len, h, d_k) --> (batch, h, seq_len, d_k)
+        query = query.view(query.shape[0], query.shape[1], self.h, self.d_k).transpose(1, 2)
+        key = key.view(key.shape[0], key.shape[1], self.h, self.d_k).transpose(1, 2)
+        value = value.view(value.shape[0], value.shape[1], self.h, self.d_k).transpose(1, 2)
+
+        # Calculate attention
+        x, self.attention_scores = MultiHeadAttentionBlock.attention(query, key, value, mask, self.dropout)
+        
+        
+        # Combine all the heads together
+        # (batch, h, seq_len, d_k) --> (batch, seq_len, h, d_k) --> (batch, seq_len, d_model)
+        x = x.transpose(1, 2).contiguous().view(x.shape[0], -1, self.h * self.d_k)
+
+        # Multiply by Wo
+        # (batch, seq_len, d_model) --> (batch, seq_len, d_model) 
+      
+        return self.w_o(x)
+
+
+# class MultiHeadAttention(nn.Module):
+#     def __init__(self, d_model, batch, heads) -> None:
+#         super(MultiHeadAttention,self).__init__()
+#         self.head = heads
+#         self.head_dim = d_model // heads
         
 
 
-        assert d_model % heads == 0, 'cannot divide d_model by heads'
+#         assert d_model % heads == 0, 'cannot divide d_model by heads'
 
-        ## initialize the query, key and value weights 512*512
-        self.query_weight = nn.Linear(d_model, d_model, bias=False)
-        self.key_weight = nn.Linear(d_model, d_model,bias=False)
-        self.value_weight = nn.Linear(d_model, d_model,bias=False)
-        self.final_weight  = nn.Linear(d_model, d_model, bias=False)
-        self.dropout = nn.Dropout(p=0.1)
+#         ## initialize the query, key and value weights 512*512
+#         self.query_weight = nn.Linear(d_model, d_model, bias=False)
+#         self.key_weight = nn.Linear(d_model, d_model,bias=False)
+#         self.value_weight = nn.Linear(d_model, d_model,bias=False)
+#         self.final_weight  = nn.Linear(d_model, d_model, bias=False)
+#         self.dropout = nn.Dropout(p=0.1)
 
    
 
        
 
 
-    # @staticmethod    
-    def self_attention(self,query, key, value, mask,dropout):
-        #splitting query, key and value into heads
-        query = query.view(query.shape[0], query.shape[1],self.head,self.head_dim).transpose(2,1)
-        key = key.view(key.shape[0], key.shape[1],self.head,self.head_dim).transpose(2,1)
-        value = value.view(value.shape[0], value.shape[1],self.head,self.head_dim).transpose(2,1)
+#     # @staticmethod    
+#     def self_attention(self,query, key, value, mask,dropout):
+#         #splitting query, key and value into heads
+#         query = query.view(query.shape[0], query.shape[1],self.head,self.head_dim).transpose(2,1)
+#         key = key.view(key.shape[0], key.shape[1],self.head,self.head_dim).transpose(2,1)
+#         value = value.view(value.shape[0], value.shape[1],self.head,self.head_dim).transpose(2,1)
 
 
         
-        attention = query @ key.transpose(3,2)
+#         attention = query @ key.transpose(3,2)
 
      
         
 
-        attention = attention / math.sqrt(query.shape[-1])
+#         attention = attention / math.sqrt(query.shape[-1])
 
         
         
-        if mask is not None:
-           attention = attention.masked_fill(mask == 0, -1e9)
+#         if mask is not None:
+#            attention = attention.masked_fill(mask == 0, -1e9)
             
-        attention = torch.softmax(attention, dim=3)
+#         attention = torch.softmax(attention, dim=3)
       
 
             
-        if dropout is not None:
-            attention = dropout(attention)
+#         if dropout is not None:
+#             attention = dropout(attention)
 
 
-        attention_scores =  attention @ value
+#         attention_scores =  attention @ value
       
 
      
         
 
-        # attention_scores = attention_scores.transpose(2,1)
+#         # attention_scores = attention_scores.transpose(2,1)
        
-        return attention_scores.transpose(2,1).contiguous().view(attention_scores.shape[0], -1, self.head_dim * self.head)
+#         return attention_scores.transpose(2,1).contiguous().view(attention_scores.shape[0], -1, self.head_dim * self.head)
       
 
-        #this gives us a dimension of batch, num_heads, seq_len by 64. basically 1 sentence is converted to have 8 parts (heads)
-    def forward(self,query, key, value,mask):
-        mask
+#         #this gives us a dimension of batch, num_heads, seq_len by 64. basically 1 sentence is converted to have 8 parts (heads)
+#     def forward(self,query, key, value,mask):
+#         mask
       
 
 
-        ## initialize the query, key and value matrices to give us seq_len by 512
-        query = self.query_weight(query)
-        key = self.key_weight(key)
-        value = self.value_weight(value)
+#         ## initialize the query, key and value matrices to give us seq_len by 512
+#         query = self.query_weight(query)
+#         key = self.key_weight(key)
+#         value = self.value_weight(value)
 
 
         
-        attention = MultiHeadAttention.self_attention(self, query, key, value, mask, self.dropout)
-        return self.final_weight(attention)
+#         attention = MultiHeadAttention.self_attention(self, query, key, value, mask, self.dropout)
+#         return self.final_weight(attention)
 
 
 
@@ -198,7 +260,7 @@ class ProjectionLayer(nn.Module):
 class EncoderBlock(nn.Module):
     def __init__(self, seq_len, batch, d_model, head, d_ff) -> None:
         super(EncoderBlock, self).__init__()    
-        self.multiheadattention = MultiHeadAttention(d_model, batch, head)
+        self.multiheadattention = MultiHeadAttentionBlock(d_model,head, 0.1)
         self.layer_norm1 = nn.LayerNorm(d_model)
         self.dropout1 = nn.Dropout(p=0.1)
         self.feedforward = FeedForward(d_model, d_ff)
@@ -252,8 +314,8 @@ class DecoderBlock(nn.Module):
         # self.heads = head
         self.head_dim = d_model // head
         
-        self.multiheadattention = MultiHeadAttention(d_model, batch, head)
-        self.crossattention = MultiHeadAttention(d_model, batch, head)
+        self.multiheadattention = MultiHeadAttentionBlock(d_model, head, 0.1)
+        self.crossattention = MultiHeadAttentionBlock(d_model, head, 0.1)
         self.layer_norm1 = nn.LayerNorm(d_model)
         self.dropout1 = nn.Dropout(p=0.1)
         self.feedforward = FeedForward(d_model,d_ff)
