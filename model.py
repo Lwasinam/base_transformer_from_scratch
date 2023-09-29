@@ -347,7 +347,7 @@ class Transformer(nn.Module):
         # (batch, seq_len, d_model)
         tgt = self.tgt_embed(tgt)
         tgt = self.tgt_pos(tgt)
-        return self.decoder(tgt, encoder_output, src_mask, tgt_mask)
+        return self.decoder(tgt, src_mask, tgt_mask, encoder_output,)
     
     def project(self, x):
         # (batch, seq_len, vocab_size)
