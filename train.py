@@ -288,7 +288,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
       
 
         # calculate output
-        out = model.decode(encoder_output, source_mask, decoder_input, decoder_mask)
+        out = model.decode(decoder_input, encoder_mask, decoder_mask, encoder_output) 
         print(f'out: {out.shape}')
 
         # get next token
