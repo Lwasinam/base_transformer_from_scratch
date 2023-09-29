@@ -170,6 +170,8 @@ def train_model(config):
 
     train_dataloader, val_dataloader, source_lang_tokenizer, target_lang_tokenizer = get_dataset(config)
     model = get_model(config, target_lang_tokenizer, source_lang_tokenizer).to(device)
+
+    print(model)
   
 
 
@@ -204,7 +206,7 @@ def train_model(config):
             
 
             encoder_output =   model.encode(encoder_input, encoder_mask)
-            decoder_output = model.decode(decoder_input, decoder_mask,encoder_mask, encoder_output, )
+            decoder_output = model.decode(decoder_input, encoder_mask,decoder_mask, encoder_output, )
             proj_output = model.project(decoder_output)        
 
 
