@@ -214,7 +214,7 @@ class EncoderBlock(nn.Module):
 
         # Feedforward block
         x_resid2 = x
-        x = self.feed_forward(x)
+        x = self.feedforward(x)
         x = self.dropout2(x)
         x = x_resid2 + x
         x = self.layer_norm2(x)
@@ -278,7 +278,7 @@ class DecoderBlock(nn.Module):
 
         # Feedforward block
         x_resid3 = x
-        x = self.feed_forward(x)
+        x = self.feedforward(x)
         x = self.dropout3(x)
         x = x_resid3 + x
         x = self.layer_norm3(x)
