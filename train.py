@@ -468,7 +468,7 @@ def train_model(config):
             decoder_mask = batch['decoder_mask'].to(device) # (B, 1, seq_len, seq_len)
 
             # Run the tensors through the encoder, decoder and the projection layer
-          
+            
             encoder_output = model.encode(encoder_input, encoder_mask) # (B, seq_len, d_model)
             decoder_output = model.decode(decoder_input, encoder_mask, decoder_mask, encoder_output) # (B, seq_len, d_model)
             proj_output = model.project(decoder_output)
