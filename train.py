@@ -425,7 +425,7 @@ def get_ds(config):
     return train_dataloader, val_dataloader, tokenizer_src, tokenizer_tgt
 
 def get_model(config, vocab_src_len, vocab_tgt_len):
-    model = build_transformer(vocab_src_len, vocab_tgt_len, config['seq_len'],  config['seq_len'])
+    model = build_transformer(config['seq_len'], config['batch_size'], vocab_tgt_len, vocab_src_len,  config['d_model'])
     return model
 
 def train_model(config):
@@ -470,7 +470,7 @@ def train_model(config):
             # Run the tensors through the encoder, decoder and the projection layer
             
             encoder_output = model.encode(encoder_input, encoder_mask) # (B, seq_len, d_model)
-            decoder_output = model.decode(encoder_output, encoder_mask, decoder_input, decoder_mask) # (B, seq_len, d_model)
+            decoder_output = model.decode(decoder_input, encoder_mask, decoder_mask, encoder_output) # (B, seq_len, d_model)
             proj_output = model.project(decoder_output)
            
              # (B, seq_len, vocab_size)
