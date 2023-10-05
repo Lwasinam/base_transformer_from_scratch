@@ -218,8 +218,8 @@ class EncoderBlock(nn.Module):
         x_resid2 = x
         x = self.feedforward(x)
         x = self.dropout2(x)
-        return x_resid2 + x
-        # return self.layer_norm3(x)
+        x =  x_resid2 + x
+        return self.layer_norm3(x)
        
     
 
@@ -235,7 +235,7 @@ class Encoder(nn.Module):
     def forward(self, x, src_mask):
         for encoder_block in self.encoders:
             x = encoder_block(x, src_mask)
-        return self.norm(x)
+        return x
      
     
 class DecoderBlock(nn.Module):
@@ -275,8 +275,8 @@ class DecoderBlock(nn.Module):
         x_resid3 = x
         x = self.feedforward(x)
         x = self.dropout3(x)
-        return x_resid3 + x
-        # return self.layer_norm4(x)
+        x =  x_resid3 + x
+        return self.layer_norm4(x)
         
 
 class Decoder(nn.Module):
