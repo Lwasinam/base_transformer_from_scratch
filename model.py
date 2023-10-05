@@ -297,7 +297,7 @@ class Decoder(nn.Module):
     #         x = decoder_block(x, src_mask, tgt_mask, encoder_output)
     #     return x      
     def forward(self, x, src_mask, tgt_mask, encoder_output):
-        return decoder(x, src_mask, tgt_mask,encoder_output)
+        return self.decoder(x, src_mask, tgt_mask,encoder_output)
 
 
 class Transformer(nn.Module):
