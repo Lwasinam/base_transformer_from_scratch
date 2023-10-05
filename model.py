@@ -218,8 +218,8 @@ class EncoderBlock(nn.Module):
         x_resid2 = x
         x = self.feedforward(x)
         x = self.dropout2(x)
-        return  x_resid2 + x
-        # return self.layer_norm3(x)
+        x =  x_resid2 + x
+        return self.layer_norm3(x)
        
     
 
@@ -227,15 +227,18 @@ class Encoder(nn.Module):
     def __init__(self, number_of_block, seq_len, batch, d_model, head, d_ff) -> None:
         super(Encoder, self).__init__()
         self.norm = nn.LayerNorm(d_model)
+        self.encoder = EncoderBlock(seq_len, batch, d_model, head, d_ff)
  
         # Use nn.ModuleList to store the EncoderBlock instances
-        self.encoders = nn.ModuleList([EncoderBlock(seq_len, batch, d_model, head, d_ff) 
-                                       for _ in range(number_of_block)])
+        # self.encoders = nn.ModuleList([EncoderBlock(seq_len, batch, d_model, head, d_ff) 
+        #                                for _ in range(number_of_block)])
 
+    # def forward(self, x, src_mask):
+    #     for encoder_block in self.encoders:
+    #         x = encoder_block(x, src_mask)
+    #     return self.norm(x)
     def forward(self, x, src_mask):
-        for encoder_block in self.encoders:
-            x = encoder_block(x, src_mask)
-        return self.norm(x)
+        return self.encoder(x, src_mask)
      
     
 class DecoderBlock(nn.Module):
@@ -276,23 +279,25 @@ class DecoderBlock(nn.Module):
         x_resid3 = x
         x = self.feedforward(x)
         x = self.dropout3(x)
-        return x_resid3 + x
-        # return self.layer_norm4(x)
+        x = x_resid3 + x
+        return self.layer_norm4(x)
         
 
 class Decoder(nn.Module):
     def __init__(self, number_of_block, seq_len, batch, d_model, head, d_ff) -> None:
         super(Decoder, self).__init__()
         self.norm = nn.LayerNorm(d_model)
+        self.decoder = DecoderBlock(seq_len, batch, d_model, head, d_ff)
  
-        self.decoders = nn.ModuleList([DecoderBlock(seq_len, batch, d_model, head, d_ff) 
-                                       for _ in range(number_of_block)])
+        # self.decoders = nn.ModuleList([DecoderBlock(seq_len, batch, d_model, head, d_ff) 
+        #                                for _ in range(number_of_block)])
 
+    # def forward(self, x, src_mask, tgt_mask, encoder_output):
+    #     for decoder_block in self.decoders:
+    #         x = decoder_block(x, src_mask, tgt_mask, encoder_output)
+    #     return x      
     def forward(self, x, src_mask, tgt_mask, encoder_output):
-        for decoder_block in self.decoders:
-            x = decoder_block(x, src_mask, tgt_mask, encoder_output)
-        return self.norm(x)      
-    
+        return decoder(x, src_mask, tgt_mask,encoder_output)
 
 
 class Transformer(nn.Module):
