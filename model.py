@@ -290,7 +290,7 @@ class Decoder(nn.Module):
     def forward(self, x, src_mask, tgt_mask, encoder_output):
         for decoder_block in self.decoders:
             x = decoder_block(x, src_mask, tgt_mask, encoder_output)
-        return self.norm(x)       
+        return x      
     
 
 
