@@ -235,7 +235,7 @@ class Encoder(nn.Module):
     def forward(self, x, src_mask):
         for encoder_block in self.encoders:
             x = encoder_block(x, src_mask)
-        return norm(x)
+        return self.norm(x)
      
     
 class DecoderBlock(nn.Module):
