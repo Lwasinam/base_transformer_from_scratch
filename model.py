@@ -38,7 +38,7 @@ class PositionEncoding(nn.Module):
         postion  = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
     
         ## this calculates the scaling term per dimension (512)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
 
         # div_term = torch.pow(10,  torch.arange(0,self.d_model, 2).float() *-4/self.d_model)
       
@@ -103,7 +103,7 @@ class MultiHeadAttention(nn.Module):
         if mask is not None:
            attention = attention.masked_fill(mask == 0, -1e9)
             
-        attention = torch.softmax(attention, dim=3)
+        attention = torch.softmax(attention, dim=-1)
       
 
             
