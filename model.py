@@ -238,11 +238,11 @@ class EncoderBlock(nn.Module):
         self.layer_norm1 = nn.LayerNorm(d_model)
         self.dropout1 = nn.Dropout(p=0.1)
         self.feedforward = FeedForward(d_model,d_ff)
-        self.residual_connections = nn.ModuleList([ResidualConnection(self.dropout1) for _ in range(2)])
+        self.residual_connections = nn.ModuleList([ResidualConnection(0.1) for _ in range(2)])
 
     def forward(self, x,src_mask):
         x = self.residual_connections[0](x, lambda x: self.multiheadattention(x, x, x, src_mask))
-        x = self.residual_connections[2](x, self.feedforwardblock)
+        x = self.residual_connections[1](x, self.feedforward)
         return x
        
     
@@ -315,12 +315,12 @@ class DecoderBlock(nn.Module):
         self.layer_norm1 = nn.LayerNorm(d_model)
         self.dropout1 = nn.Dropout(p=0.1)
         self.feedforward = FeedForward(d_model,d_ff)
-        self.residual_connections = nn.ModuleList([ResidualConnection(self.dropout1) for _ in range(3)])
+        self.residual_connections = nn.ModuleList([ResidualConnection(0.1) for _ in range(3)])
 
     def forward(self, x, src_mask, tgt_mask, encoder_output):
         x = self.residual_connections[0](x, lambda x: self.multiheadattention(x, x, x, tgt_mask))
         x = self.residual_connections[1](x, lambda x: self.crossattention(x, encoder_output, encoder_output, src_mask))
-        x = self.residual_connections[2](x, self.feedforwardblock)
+        x = self.residual_connections[2](x, self.feedforward)
         return x
         
 
