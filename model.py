@@ -23,7 +23,7 @@ class InputEmbeddings(nn.Module):
 
 
 
-class PositionalEncoding(nn.Module):
+class PositionEncoding(nn.Module):
     def __init__(self, seq_len, d_model, batch) -> None:
         super(PositionalEncoding, self).__init__()
         # self.seq_len = seq_len
@@ -54,7 +54,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('positional_encoding', positional_encoding)
     
     def forward(self, x):  
-         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False).to(device)
+         x =  x + (self.positional_encoding[:, :x.shape[1], :]).requires_grad_(False)
          return self.dropout(x)
 
 
@@ -310,7 +310,7 @@ class Transformer(nn.Module):
         self.projection = ProjectionLayer(d_model, target_vocab_size)
         self.source_embedding = InputEmbeddings(d_model,source_vocab_size )
         self.target_embedding = InputEmbeddings(d_model,target_vocab_size)
-        self.positional_encoding = PositionalEncoding(seq_len, d_model, batch)
+        self.positional_encoding = PositionEncoding(seq_len, d_model, batch)
    
     def encode(self,x, src_mask):
         x = self.source_embedding(x)
