@@ -25,7 +25,7 @@ class InputEmbeddings(nn.Module):
 
 class PositionEncoding(nn.Module):
     def __init__(self, seq_len, d_model, batch) -> None:
-        super(PositionalEncoding, self).__init__()
+        super(PositionEncoding, self).__init__()
         # self.seq_len = seq_len
         # self.d_model = d_model
         # self.batch = batch
